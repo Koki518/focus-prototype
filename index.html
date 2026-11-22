@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17212B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Study Together, Phones Down</title>
+<style>
+  :root {
+    --ink: #17212B; --ink2: #22303C; --ink3: #0F171E; --line: #34444F;
+    --paper: #F6F1E7; --muted: #C3CDD5; --dim: #8A97A3;
+    --amber: #E3A13B; --red: #E5484D; --green: #4CC38A;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--ink); color: var(--paper);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent; transition: background .4s;
+  }
+  body.focus { background: #05080B; }
+  #app {
+    max-width: 520px; margin: 0 auto; min-height: 100vh;
+    padding: calc(20px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column;
+  }
+  section { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+  section[hidden] { display: none; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 34px; line-height: 1.08; margin: 6px 0 0; font-weight: 700; }
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 26px; margin: 4px 0 0; font-weight: 700; }
+  p { margin: 0; line-height: 1.45; }
+  .eyebrow { font-size: 13px; letter-spacing: 2px; font-weight: 700; color: var(--amber); text-transform: uppercase; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; color: var(--dim); }
+  label { font-size: 14px; color: var(--muted); font-weight: 600; }
+  input[type=text], input[type=number] {
+    width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--ink2); color: var(--paper); font-size: 17px; outline: none;
+  }
+  input:focus { border-color: var(--amber); }
+  .btn {
+    appearance: none; border: 0; border-radius: 14px; padding: 16px 18px; width: 100%;
+    font-size: 17px; font-weight: 700; background: var(--amber); color: var(--ink); cursor: pointer;
+  }
+  .btn:disabled { opacity: .45; }
+  .btn.secondary { background: var(--ink2); color: var(--paper); border: 1px solid var(--line); }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 600; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  .spacer { flex: 1; }
+  .card { background: var(--ink2); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    appearance: none; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--ink2); color: var(--paper); font-size: 15px; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--amber); color: var(--ink); border-color: var(--amber); font-weight: 700; }
+  .code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 44px; letter-spacing: 8px; font-weight: 700; color: var(--amber); text-align: center; }
+  .pill { display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--ink2); border: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  .pill b { color: var(--paper); }
+  .net { font-size: 12px; color: var(--dim); text-align: right; }
+  .timer { font-variant-numeric: tabular-nums; font-size: 88px; line-height: 1; font-weight: 700; text-align: center; letter-spacing: -2px; margin-top: 18px; }
+  body.focus .timer { color: var(--amber); }
+  .state { text-align: center; font-size: 19px; font-weight: 600; min-height: 28px; }
+  .sub { text-align: center; color: var(--muted); font-size: 15px; }
+  .members { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .member { display: flex; align-items: center; gap: 12px; background: var(--ink2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  body.focus .member { background: #0C1218; }
+  .member .who { flex: 1; min-width: 0; }
+  .member .name { font-weight: 700; }
+  .member .st { font-size: 14px; color: var(--muted); }
+  .member .num { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--muted); text-align: right; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; background: #6B7785; }
+  .dot.focusing { background: var(--green); }
+  .dot.up { background: var(--red); }
+  .dot.ready { background: var(--amber); }
+  .dot.done { background: var(--paper); }
+  .owes { border-left: 4px solid var(--amber); }
+  .demo { border-style: dashed; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 20; background: rgba(150, 22, 32, .96);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 32px; text-align: center;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h2 { font-size: 32px; }
+  .overlay .btn { max-width: 320px; }
+  .toast {
+    position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top)); transform: translateX(-50%);
+    width: min(92vw, 480px); z-index: 30; background: var(--paper); color: var(--ink);
+    border-radius: 14px; padding: 14px 16px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  .toast[hidden] { display: none; }
+  .stat { display: flex; justify-content: space-between; gap: 12px; font-size: 16px; }
+  .stat b { font-variant-numeric: tabular-nums; text-align: right; }
+  .badge { text-align: center; font-size: 34px; font-weight: 800; letter-spacing: 1px; padding: 22px; border-radius: 18px; background: var(--ink2); border: 2px solid var(--line); color: var(--muted); }
+  .badge.down { background: var(--green); border-color: var(--green); color: #08130D; }
+  .badge.up { background: var(--red); border-color: var(--red); color: #fff; }
+  .hist .who .st { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section data-screen="home">
+    <p class="eyebrow">Prototype</p>
+    <h1>Study Together,<br>Phones Down</h1>
+    <p class="muted">Put your phone face-down to start the timer. It only runs while the phone stays down. Study solo, or with friends, each in your own place.</p>
+    <div class="card">
+      <label for="name">Your first name</label>
+      <input id="name" type="text" maxlength="24" autocomplete="given-name" placeholder="e.g. Koki">
+    </div>
+    <button class="btn" id="btnSolo">Study solo</button>
+    <button class="btn secondary" id="btnCreate">Create a group session</button>
+    <div class="card">
+      <label for="joinCode">Join a group with a code</label>
+      <div class="row">
+        <input id="joinCode" type="text" maxlength="8" autocapitalize="characters" autocomplete="off" placeholder="ABCDE" style="text-transform:uppercase">
+        <button class="btn secondary" id="btnJoin" style="flex:0 0 96px">Join</button>
+      </div>
+    </div>
+    <p class="small" id="homeError" role="alert"></p>
+    <div class="row">
+      <button class="btn ghost" id="btnTest">Sensor test</button>
+      <button class="btn ghost" id="btnHistory">My sessions</button>
+    </div>
+    <div class="spacer"></div>
+    <p class="small">Prototype for a student project. Face-down detection needs a phone and an https:// address. Group sessions use a public test server: use first names only. Version <span id="ver"></span></p>
+  </section>
+
+  <!-- SENSOR TEST -->
+  <section data-screen="test" hidden>
+    <p class="eyebrow">Sensor test</p>
+    <h2>Does face-down work on this phone?</h2>
+    <p class="muted">Tap Start, lay the phone face-up on a table, then flip it face-down. Repeat 5 times. You should hear “Face down” when the phone is detected face-down and “Face up” when you pick it up (beeps if this phone cannot speak).</p>
+    <button class="btn" id="btnTestStart">Start sensor test</button>
+    <div class="badge" id="testBadge">Not started</div>
+    <div class="card">
+      <div class="stat"><span>Secure page (https)</span><b id="tSecure"></b></div>
+      <div class="stat"><span>Motion permission</span><b id="tPerm"></b></div>
+      <div class="stat"><span>Sensor used</span><b id="tMode"></b></div>
+      <div class="stat"><span>Readings per second</span><b id="tRate"></b></div>
+      <div class="stat"><span>Front/back tilt (beta)</span><b id="tBeta"></b></div>
+      <div class="stat"><span>Side tilt (gamma)</span><b id="tGamma"></b></div>
+      <div class="stat"><span>Gravity (z)</span><b id="tZ"></b></div>
+      <div class="stat"><span>Face-down detections</span><b id="tFlips"></b></div>
+      <div class="stat"><span>Screen kept awake</span><b id="tWake"></b></div>
+      <div class="stat"><span>Vibration</span><b id="tVib"></b></div>
+      <div class="stat"><span>Voice (“Face down” / “Face up”)</span><b id="tVoice"></b></div>
+    </div>
+    <button class="btn secondary" id="btnTestCopy">Copy results to send to the team</button>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnTestBack">Back</button>
+  </section>
+
+  <!-- HISTORY -->
+  <section data-screen="history" hidden>
+    <p class="eyebrow">My sessions</p>
+    <h2>Saved on this phone</h2>
+    <p class="muted" id="histSummary"></p>
+    <ul class="members hist" id="histList"></ul>
+    <button class="btn secondary" id="btnCsvSessions">Download sessions (CSV)</button>
+    <button class="btn secondary" id="btnCsvEvents">Download event log (CSV)</button>
+    <button class="btn ghost" id="btnCopyCsv">Copy sessions as text</button>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnClearHist">Delete all saved sessions</button>
+    <button class="btn ghost" id="btnHistBack">Back</button>
+  </section>
+
+  <!-- SETUP -->
+  <section data-screen="setup" hidden>
+    <p class="eyebrow" id="setupEyebrow">Solo session</p>
+    <h2>Set up your session</h2>
+    <div class="card">
+      <label>Duration (minutes)</label>
+      <div class="chips" id="durationChips">
+        <button class="chip" data-min="1">1 (demo)</button>
+        <button class="chip" data-min="25">25</button>
+        <button class="chip" data-min="50">50</button>
+        <button class="chip" data-min="90">90</button>
+      </div>
+      <input id="customMin" type="number" min="1" max="240" inputmode="numeric" placeholder="Custom minutes">
+    </div>
+    <div class="card" id="penaltyCard">
+      <label>Penalty for whoever picks up their phone</label>
+      <div class="chips" id="penaltyChips">
+        <button class="chip" data-penalty="Buy everyone a coffee">Buy everyone a coffee</button>
+        <button class="chip" data-penalty="Bring snacks next time">Bring snacks next time</button>
+        <button class="chip" data-penalty="No penalty">No penalty</button>
+      </div>
+      <input id="customPenalty" type="text" maxlength="60" placeholder="Or write your own">
+      <p class="small">The app only keeps score. Your group settles the penalty in real life: no money goes through the app.</p>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnSetupGo">Continue</button>
+    <button class="btn ghost" id="btnSetupBack">Back</button>
+  </section>
+
+  <!-- LOBBY -->
+  <section data-screen="lobby" hidden>
+    <div class="row" style="align-items:center"><p class="eyebrow">Group session</p><p class="net" id="netLobby"></p></div>
+    <p class="muted">Room code</p>
+    <div class="code" id="lobbyCode">-----</div>
+    <p class="sub" id="lobbyHint">Friends open this page and join with the code.</p>
+    <button class="btn secondary" id="btnCopy">Copy invite link</button>
+    <p class="pill" id="lobbyPenalty" hidden></p>
+    <h2 style="font-size:20px">Who’s here</h2>
+    <ul class="members" id="lobbyMembers"></ul>
+    <p class="small" id="lobbyWait"></p>
+    <div class="spacer"></div>
+    <button class="btn" id="btnStartAll" hidden>Start session for everyone</button>
+    <button class="btn ghost" id="btnLeaveLobby">Leave</button>
+  </section>
+
+  <!-- SESSION -->
+  <section data-screen="session" hidden>
+    <div class="row" style="align-items:center"><p class="eyebrow" id="sessLabel">Solo session</p><p class="net" id="netSess"></p></div>
+    <p class="pill" id="sessPenalty" hidden></p>
+    <div class="timer" id="timer">00:00</div>
+    <p class="state" id="stateText"></p>
+    <p class="sub" id="pickupText"></p>
+    <button class="btn" id="btnEnable">Enable motion sensor &amp; start</button>
+    <p class="small" id="sensorNote" style="text-align:center"></p>
+    <div class="card demo" id="demoBox" hidden>
+      <p class="small">No motion sensor here, so use these buttons to simulate the phone.</p>
+      <div class="row">
+        <button class="btn secondary" id="btnSimDown">Face-down</button>
+        <button class="btn secondary" id="btnSimUp">Pick up</button>
+      </div>
+    </div>
+    <ul class="members" id="sessMembers"></ul>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnEnd">Stop session</button>
+  </section>
+
+  <!-- SUMMARY -->
+  <section data-screen="summary" hidden>
+    <p class="eyebrow">Session over</p>
+    <h2 id="sumTitle">Nice work</h2>
+    <div class="card">
+      <div class="stat"><span>Your focused time</span><b id="sumFocused">0:00</b></div>
+      <div class="stat"><span>Times you picked up your phone</span><b id="sumPickups">0</b></div>
+    </div>
+    <div class="card" id="owesCard" hidden>
+      <p class="eyebrow">Penalty</p>
+      <div id="owesList"></div>
+    </div>
+    <div class="card">
+      <p class="eyebrow">How focused did you feel?</p>
+      <div class="chips" id="ratingChips">
+        <button class="chip" data-r="1">1</button><button class="chip" data-r="2">2</button><button class="chip" data-r="3">3</button><button class="chip" data-r="4">4</button><button class="chip" data-r="5">5</button>
+      </div>
+      <p class="small">1 = not focused at all, 5 = fully focused. Saved with this session.</p>
+    </div>
+    <ul class="members" id="sumMembers"></ul>
+    <div class="spacer"></div>
+    <button class="btn secondary" id="btnCsvThis">Download this session (CSV)</button>
+    <button class="btn" id="btnHome">Back to start</button>
+  </section>
+</div>
+
+<div class="overlay" id="overlay" role="alertdialog" aria-live="assertive" hidden>
+  <h2>Phone picked up!</h2>
+  <p id="overlayText">Timer paused. Put your phone back face-down to continue.</p>
+  <button class="btn" id="btnOverlaySim" hidden>Simulate face-down</button>
+  <button class="btn ghost" id="btnOverlayClose" style="color:#fff;border-color:rgba(255,255,255,.5)">OK</button>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const DEMO = params.has('demo');                       // ?demo=1 : buttons instead of the sensor
+const SPEED = Math.max(1, Math.min(600, Number(params.get('speed')) || 1)); // test speed-up
+const TRANSPORT = params.get('transport') === 'local' ? 'local' : 'mqtt';  // ?transport=local : sync between tabs only
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'];
+const MQTT_LIB = 'https://unpkg.com/mqtt@5/dist/mqtt.min.js';
+const VERSION = '0.3';
+
+// Face-down detection settings. Change these if the sensor test shows your phone needs other values.
+const FACE_DOWN_MIN_BETA = 140;   // |front/back tilt| above this (degrees) = screen facing the table
+const FACE_DOWN_MAX_GAMMA = 40;   // |side tilt| below this (degrees)
+const FACE_DOWN_MOTION_Z = 7;     // fallback when only gravity is available (m/s²)
+const DOWN_CONFIRM_MS = 700;      // phone must stay down this long before the timer starts
+const UP_CONFIRM_MS = 900;        // phone must stay up this long before it counts as a pick-up
+
+// Voice announcements. Add ?voice=0 to the address to turn them off (e.g. in a quiet library).
+const SPEAK_FACE_STATE = params.get('voice') !== '0';
+const SAY_FACE_DOWN = 'Face down';  // spoken when the phone is laid face-down
+const SAY_FACE_UP = 'Face up';      // spoken when the phone is picked up
+const SPEECH_LANG = 'en-US';        // voice language, e.g. 'ja-JP' if you write the phrases in Japanese
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+function rid(n) { const c = 'abcdefghijkmnpqrstuvwxyz23456789'; let s = ''; const a = crypto.getRandomValues(new Uint8Array(n)); for (const x of a) s += c[x % c.length]; return s; }
+function roomCode() { const c = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s = ''; const a = crypto.getRandomValues(new Uint8Array(5)); for (const x of a) s += c[x % c.length]; return s; }
+function fmt(ms) {
+  const t = Math.max(0, Math.ceil(ms / 1000)); const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  return (h ? h + ':' + String(m).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(s).padStart(2, '0');
+}
+function clamp(n, a, b) { n = Number(n); return Number.isFinite(n) ? Math.min(b, Math.max(a, n)) : a; }
+function str(v, max) { return String(v == null ? '' : v).slice(0, max); }
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+/* ---------- state ---------- */
+// One id per tab (kept across reloads of that tab), so two tabs on one device are two members.
+function tabId() {
+  try { let v = sessionStorage.getItem('stpd_tab_id'); if (!v) { v = rid(10); sessionStorage.setItem('stpd_tab_id', v); } return v; }
+  catch (e) { return rid(10); }
+}
+const S = {
+  screen: 'home',
+  me: { id: tabId(), name: store.get('stpd_name', '') },
+  mode: 'solo',
+  isHost: false,
+  setup: { durationMin: 50, penalty: 'Buy everyone a coffee' },
+  room: null,            // { code, durationMin, penalty, host, state, startedAt }
+  members: new Map(),    // id -> member
+  session: null,         // { phase, durationMs, remainingMs, focusedMs, pickups, stoppedEarly }
+  net: null,
+  netStatus: '',
+  sensor: {
+    listening: false, ok: false, unavailable: false, raw: false, rawSince: 0, faceDown: false,
+    perm: 'not asked', mode: null, count: 0, rate: 0, beta: null, gamma: null, z: null,
+    downSample: null, upSample: null,
+  },
+  test: { running: false, flips: 0, ups: 0, wake: '' },
+  hiddenRawDown: false,
+};
+
+/* ---------- screens ---------- */
+function show(name) { S.screen = name; render(); window.scrollTo(0, 0); }
+
+function render() {
+  document.querySelectorAll('section[data-screen]').forEach((s) => { s.hidden = s.dataset.screen !== S.screen; });
+  document.body.classList.toggle('focus', S.screen === 'session' && S.session && S.session.phase === 'focusing');
+  if (S.screen === 'setup') renderSetup();
+  if (S.screen === 'lobby') renderLobby();
+  if (S.screen === 'session') renderSession();
+  if (S.screen === 'summary') renderSummary();
+  if (S.screen === 'test') renderTest();
+  if (S.screen === 'history') renderHistory();
+}
+
+function renderSetup() {
+  const group = S.mode === 'group';
+  $('#setupEyebrow').textContent = group ? 'Group session' : 'Solo session';
+  $('#penaltyCard').hidden = !group;
+  $('#btnSetupGo').textContent = group ? 'Create room' : 'Continue';
+  document.querySelectorAll('#durationChips .chip').forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.min) === S.setup.durationMin)));
+  document.querySelectorAll('#penaltyChips .chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.penalty === S.setup.penalty)));
+}
+
+function memberList(target, opts) {
+  const ul = $(target); ul.textContent = '';
+  const list = [...S.members.values()].sort((a, b) => (a.id === S.me.id ? -1 : b.id === S.me.id ? 1 : a.name.localeCompare(b.name)));
+  const penalty = S.room && S.room.penalty;
+  for (const m of list) {
+    const li = el('li', 'member');
+    const [label, dotCls] = statusInfo(m);
+    if (opts && opts.owes && m.pickups > 0 && penalty && penalty !== 'No penalty') li.classList.add('owes');
+    li.appendChild(el('span', 'dot ' + dotCls));
+    const who = el('div', 'who');
+    who.appendChild(el('div', 'name', m.name + (m.id === S.me.id ? ' (you)' : '') + (S.room && m.id === S.room.host ? ' · host' : '')));
+    who.appendChild(el('div', 'st', label));
+    li.appendChild(who);
+    if (opts && opts.stats) {
+      const mine = m.id === S.me.id && S.session;   // own row: live numbers, not the last broadcast
+      const focusedMs = mine ? S.session.focusedMs : m.focusedSec * 1000;
+      const pickups = mine ? S.session.pickups : m.pickups;
+      const num = el('div', 'num');
+      num.appendChild(el('div', null, fmt(focusedMs) + ' focused'));
+      num.appendChild(el('div', null, pickups + (pickups === 1 ? ' pick-up' : ' pick-ups')));
+      li.appendChild(num);
+    }
+    ul.appendChild(li);
+  }
+}
+
+const STATUS = {
+  lobby: ['In the lobby', 'idle'], getting_ready: ['Getting ready', 'idle'], ready: ['Ready: phone not down yet', 'ready'],
+  focusing: ['Focusing', 'focusing'], phone_up: ['Picked up their phone', 'up'], away: ['Left the app', 'up'], done: ['Done', 'done'],
+};
+function statusInfo(m) {
+  const [label, cls] = STATUS[m.status] || ['…', 'idle'];
+  const stale = m.id !== S.me.id && m.status !== 'done' && Date.now() - m.receivedAt > 20000;
+  return [stale ? label + ' · no signal' : label, cls];
+}
+
+function renderLobby() {
+  const r = S.room || {};
+  $('#lobbyCode').textContent = r.code || '-----';
+  $('#netLobby').textContent = S.netStatus;
+  const pen = $('#lobbyPenalty');
+  pen.hidden = !r.penalty;
+  if (r.penalty) { pen.textContent = ''; pen.append('Penalty: '); pen.appendChild(el('b', null, r.penalty)); pen.append(' · ' + r.durationMin + ' min'); }
+  $('#btnStartAll').hidden = !S.isHost;
+  $('#btnStartAll').disabled = !(S.net && S.net.connected);
+  let wait = '';
+  if (!S.isHost) wait = r.state === 'ended' ? 'This session has already ended.' : r.penalty ? 'Waiting for the host to start the session…' : 'Looking for room ' + (r.code || '') + '… check the code if this takes long.';
+  $('#lobbyWait').textContent = wait;
+  memberList('#lobbyMembers');
+}
+
+function renderSession() {
+  const s = S.session; if (!s) return;
+  const group = S.mode === 'group';
+  $('#sessLabel').textContent = group ? 'Room ' + S.room.code : 'Solo session';
+  $('#netSess').textContent = group ? S.netStatus : '';
+  const pen = $('#sessPenalty');
+  pen.hidden = !group;
+  if (group) { pen.textContent = ''; pen.append('Penalty: '); pen.appendChild(el('b', null, S.room.penalty)); }
+  renderTimer();
+  const texts = {
+    setup: 'Tap the button, then put your phone face-down.',
+    armed: 'Put your phone face-down to start',
+    focusing: 'Focusing… keep it face-down',
+    paused: 'Paused: put it back face-down',
+    done: 'Done!',
+  };
+  $('#stateText').textContent = texts[s.phase] || '';
+  $('#pickupText').textContent = s.phase === 'setup' ? '' : (s.pickups === 0 ? 'No pick-ups so far' : s.pickups + (s.pickups === 1 ? ' pick-up' : ' pick-ups'));
+  $('#btnEnable').hidden = s.phase !== 'setup';
+  const simulated = DEMO || S.sensor.unavailable;
+  $('#demoBox').hidden = s.phase === 'setup' || !simulated;
+  $('#btnOverlaySim').hidden = !simulated;
+  let note = '';
+  if (s.phase !== 'setup') {
+    if (DEMO) note = 'Demo mode: sensor off.';
+    else if (S.sensor.unavailable) note = 'No motion sensor detected on this device.';
+    else if (S.sensor.ok) note = 'Motion sensor on.' + ('wakeLock' in navigator ? '' : ' Tip: turn off auto-lock during the session.');
+    else note = 'Waiting for the motion sensor…';
+  }
+  $('#sensorNote').textContent = note;
+  $('#btnEnd').textContent = group ? (S.isHost ? 'End session for everyone' : 'Leave session') : 'Stop session';
+  if (group) memberList('#sessMembers', { stats: true }); else $('#sessMembers').textContent = '';
+}
+
+function renderTimer() {
+  const s = S.session; if (!s) return;
+  $('#timer').textContent = fmt(s.remainingMs);
+}
+
+function renderSummary() {
+  const s = S.session || { focusedMs: 0, pickups: 0 };
+  renderRating();
+  $('#sumFocused').textContent = fmt(s.focusedMs);
+  $('#sumPickups').textContent = String(s.pickups);
+  $('#sumTitle').textContent = s.stoppedEarly ? 'Session ended' : s.pickups === 0 ? 'Nice work, phone stayed down' : 'Session complete';
+  const owesCard = $('#owesCard'), owesList = $('#owesList');
+  owesList.textContent = '';
+  if (S.mode === 'group') {
+    const penalty = S.room.penalty;
+    const owers = [...S.members.values()].filter((m) => m.pickups > 0);
+    owesCard.hidden = false;
+    if (penalty === 'No penalty') owesList.appendChild(el('p', 'muted', 'No penalty this time.'));
+    else if (owers.length === 0) owesList.appendChild(el('p', null, 'Nobody picked up their phone. Nobody owes anything!'));
+    else owers.forEach((m) => owesList.appendChild(el('p', null, (m.id === S.me.id ? 'You' : m.name) + ' → ' + penalty + ' (picked up ' + m.pickups + '×)')));
+    owesList.appendChild(el('p', 'small', 'Settle it among yourselves. The app doesn’t handle any money.'));
+    memberList('#sumMembers', { stats: true, owes: true });
+  } else {
+    owesCard.hidden = true;
+    $('#sumMembers').textContent = '';
+  }
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4500);
+}
+
+/* ---------- sound, vibration, wake lock ---------- */
+let actx = null;
+function unlockAudio() {
+  unlockSpeech();
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {}
+}
+function beep(freq, times) {
+  if (!actx) return;
+  try {
+    let t = actx.currentTime;
+    for (let i = 0; i < times; i++) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = freq; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      o.start(t); o.stop(t + 0.22); t += 0.3;
+    }
+  } catch (e) {}
+}
+function buzz(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {} }
+
+/* ---------- voice ("Face down" / "Face up") ---------- */
+const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+let speechUnlocked = false, speechVoice = null;
+const speechState = { worked: false, failed: '' };
+function pickVoice() {
+  if (!canSpeak) return;
+  try {
+    const want = SPEECH_LANG.toLowerCase(), base = want.slice(0, 2);
+    const vs = speechSynthesis.getVoices() || [];
+    const lang = (v) => String(v.lang || '').toLowerCase().replace('_', '-');
+    speechVoice = vs.find((v) => lang(v) === want && v.localService) || vs.find((v) => lang(v) === want) ||
+      vs.find((v) => lang(v).startsWith(base)) || null;
+  } catch (e) {}
+}
+if (canSpeak) {
+  pickVoice();
+  try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) { try { speechSynthesis.onvoiceschanged = pickVoice; } catch (e2) {} }
+}
+// iPhone only allows speech after the user has tapped something, so a silent phrase is spoken on the first tap.
+function unlockSpeech() {
+  if (!canSpeak || !SPEAK_FACE_STATE || speechUnlocked) return;
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.lang = SPEECH_LANG; speechSynthesis.speak(u); speechUnlocked = true; } catch (e) {}
+}
+// Speaks the phrase. If speech is off or not available, runs fallback (a beep) instead.
+function say(text, fallback) {
+  const fb = () => { if (fallback) fallback(); };
+  if (!SPEAK_FACE_STATE || !canSpeak || document.visibilityState !== 'visible') { fb(); return; }
+  try {
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    if (speechSynthesis.paused) speechSynthesis.resume();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = SPEECH_LANG; if (speechVoice) u.voice = speechVoice; u.rate = 1; u.pitch = 1; u.volume = 1;
+    u.onstart = () => { speechState.worked = true; };
+    u.onerror = (e) => {
+      const err = e && e.error;
+      if (err === 'interrupted' || err === 'canceled') return; // replaced by a newer phrase
+      speechState.failed = err || 'error'; fb();
+    };
+    speechSynthesis.speak(u);
+  } catch (e) { speechState.failed = 'error'; fb(); }
+}
+function voiceStatus() {
+  if (!SPEAK_FACE_STATE) return 'off (?voice=0)';
+  if (!canSpeak) return 'not supported: beeps instead';
+  if (speechState.worked) return 'yes';
+  if (speechState.failed) return 'failed (' + speechState.failed + '): beeps instead';
+  return 'supported (flip the phone to hear it)';
+}
+let wakeLock = null;
+async function keepAwake() {
+  if (wakeLock && !wakeLock.released) return;
+  try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+function releaseWake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+/* ---------- sensor ---------- */
+function setRaw(down) {
+  const sn = S.sensor;
+  if (down !== sn.raw) { sn.raw = down; sn.rawSince = performance.now(); }
+}
+function onOrientation(e) {
+  if (DEMO || e.beta == null) return;
+  const sn = S.sensor;
+  sn.ok = true; sn.mode = 'orientation'; sn.count += 1;
+  sn.beta = e.beta; sn.gamma = e.gamma || 0;
+  // Face-down: front/back tilt near ±180°, little side tilt.
+  setRaw(Math.abs(e.beta) > FACE_DOWN_MIN_BETA && Math.abs(e.gamma || 0) < FACE_DOWN_MAX_GAMMA);
+}
+function onMotion(e) {
+  if (DEMO) return;
+  const a = e.accelerationIncludingGravity; if (!a || a.z == null) return;
+  const sn = S.sensor;
+  const z = isIOS ? -a.z : a.z; // iOS reports the opposite sign
+  sn.z = z;
+  if (sn.mode === 'orientation') return;   // orientation is preferred when both exist
+  sn.ok = true; sn.mode = 'motion'; sn.count += 1;
+  setRaw(z < -FACE_DOWN_MOTION_Z);
+}
+async function enableSensors() {
+  unlockAudio();
+  if (DEMO) { S.sensor.unavailable = true; S.sensor.perm = 'demo mode'; return; }
+  if (!window.isSecureContext) {
+    S.sensor.unavailable = true; S.sensor.perm = 'blocked: page is not https';
+    toast('Motion sensors only work on an https:// address. Using demo buttons instead.');
+    return;
+  }
+  try {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      const r = await DeviceOrientationEvent.requestPermission();
+      if (r !== 'granted') throw new Error('denied');
+      S.sensor.perm = 'granted';
+    } else {
+      S.sensor.perm = 'not needed on this phone';
+    }
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+    }
+  } catch (e) {
+    S.sensor.unavailable = true; S.sensor.perm = 'refused';
+    toast('Motion sensor permission was refused. Using demo buttons instead.');
+    return;
+  }
+  if (!S.sensor.listening) {
+    window.addEventListener('deviceorientation', onOrientation);
+    window.addEventListener('devicemotion', onMotion);
+    S.sensor.listening = true;
+  }
+  setTimeout(() => { if (!S.sensor.ok) { S.sensor.unavailable = true; render(); } }, 2500);
+}
+function updateDebounce(now) {
+  const sn = S.sensor;
+  if (sn.raw !== sn.faceDown && now - sn.rawSince >= (sn.raw ? DOWN_CONFIRM_MS : UP_CONFIRM_MS)) {
+    sn.faceDown = sn.raw;
+    const sample = { beta: round1(sn.beta), gamma: round1(sn.gamma), z: round1(sn.z) };
+    if (sn.faceDown) sn.downSample = sample; else sn.upSample = sample;
+    onTestFlip(sn.faceDown);
+    onFaceChange(sn.faceDown);
+  }
+}
+function round1(v) { return v == null ? null : Math.round(v * 10) / 10; }
+function round2(v) { return Math.round(v * 100) / 100; }
+
+/* ---------- session logic ---------- */
+function newSession(min) {
+  const ms = min * 60000;
+  return {
+    id: rid(8), createdAt: Date.now(), startedAt: null, endedAt: null,
+    phase: 'setup', durationMs: ms, remainingMs: ms, focusedMs: 0, pickups: 0, stoppedEarly: false,
+    stretches: [], stretchStartMs: null, events: [], rating: null, saved: false,
+  };
+}
+function logEvent(type) {
+  const s = S.session; if (!s) return;
+  s.events.push({ t: Date.now(), type, focusedSec: Math.round(s.focusedMs / 1000) });
+}
+function openStretch() { const s = S.session; if (s && s.stretchStartMs == null) s.stretchStartMs = s.focusedMs; }
+function closeStretch() {
+  const s = S.session; if (!s || s.stretchStartMs == null) return;
+  const len = s.focusedMs - s.stretchStartMs;
+  if (len > 0) s.stretches.push(len);
+  s.stretchStartMs = null;
+}
+function myStatus() {
+  const s = S.session;
+  if (!s) return 'lobby';
+  if (document.visibilityState === 'hidden' && s.phase !== 'done') return 'away';
+  return { setup: 'getting_ready', armed: 'ready', focusing: 'focusing', paused: 'phone_up', done: 'done' }[s.phase];
+}
+function onFaceChange(down) {
+  const s = S.session; if (!s) return;
+  if (down) {
+    if (s.phase === 'armed' || s.phase === 'paused') {
+      if (!s.startedAt) s.startedAt = Date.now();
+      logEvent(s.phase === 'armed' ? 'face_down_start' : 'face_down_resume');
+      s.phase = 'focusing'; openStretch(); $('#overlay').hidden = true; keepAwake();
+      say(SAY_FACE_DOWN, () => beep(1046, 1));
+      publishPresence(); render();
+    }
+  } else if (s.phase === 'focusing') {
+    registerPickup();
+  }
+}
+function registerPickup(reason) {
+  const s = S.session;
+  closeStretch(); logEvent(reason || 'pickup');
+  s.phase = 'paused'; s.pickups += 1;
+  buzz([250, 120, 250]); say(SAY_FACE_UP, () => beep(880, 2));
+  const group = S.mode === 'group';
+  $('#overlayText').textContent = 'Timer paused. Put your phone back face-down to continue.' +
+    (group && S.room.penalty !== 'No penalty' ? ' Your group has been notified. Penalty: ' + S.room.penalty + '.' : group ? ' Your group has been notified.' : '');
+  $('#overlay').hidden = false;
+  if (group && S.net) S.net.pub('events', { type: 'pickup', id: S.me.id, name: S.me.name, pickups: s.pickups });
+  publishPresence(); render();
+}
+function completeSession(early) {
+  const s = S.session; if (!s || s.phase === 'done') return;
+  closeStretch(); logEvent(early ? 'stopped_early' : 'completed');
+  s.phase = 'done'; s.stoppedEarly = !!early; s.endedAt = Date.now(); $('#overlay').hidden = true;
+  if (!early) { buzz([100, 80, 100, 80, 300]); beep(660, 3); }
+  saveSession(s);
+  releaseWake(); publishPresence(); show('summary');
+}
+
+/* ---------- saved sessions and CSV export ---------- */
+function loadList(key) { try { const v = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+function saveList(key, list) { try { localStorage.setItem(key, JSON.stringify(list.slice(-500))); } catch (e) {} }
+function localTs(t) { return t ? new Date(t).toLocaleString('sv-SE').replace('T', ' ') : ''; }
+function sessionRecord(s) {
+  const focusedMin = s.focusedMs / 60000;
+  const st = s.stretches.map((x) => x / 60000);
+  const group = S.mode === 'group' && S.room;
+  return {
+    session_id: s.id,
+    start_time: localTs(s.startedAt || s.createdAt),
+    end_time: localTs(s.endedAt),
+    name: S.me.name,
+    mode: S.mode,
+    room: group ? S.room.code : '',
+    planned_min: round2(s.durationMs / 60000),
+    focused_min: round2(focusedMin),
+    pickups: s.pickups,
+    pickups_per_hour: focusedMin > 0 ? round2(s.pickups / (focusedMin / 60)) : '',
+    longest_uninterrupted_min: st.length ? round2(Math.max(...st)) : 0,
+    avg_uninterrupted_min: st.length ? round2(st.reduce((a, b) => a + b, 0) / st.length) : 0,
+    focus_stretches: st.length,
+    ended_early: s.stoppedEarly ? 'yes' : 'no',
+    penalty: group ? S.room.penalty : '',
+    self_rating: s.rating == null ? '' : s.rating,
+    sensor: DEMO || S.sensor.unavailable ? 'simulated' : (S.sensor.mode || 'unknown'),
+    test_speed: SPEED,
+    app_version: VERSION,
+  };
+}
+function saveSession(s) {
+  const rec = sessionRecord(s);
+  const list = loadList('stpd_sessions').filter((r) => r.session_id !== s.id);
+  list.push(rec); saveList('stpd_sessions', list);
+  if (!s.saved) {
+    const ev = loadList('stpd_events');
+    s.events.forEach((e) => ev.push({ session_id: s.id, time: localTs(e.t), event: e.type, focused_sec: e.focusedSec }));
+    saveList('stpd_events', ev);
+  }
+  s.saved = true;
+}
+function csvCell(v) {
+  let t = String(v == null ? '' : v);
+  if (/^[=+\-@]/.test(t)) t = "'" + t;               // keep spreadsheets from running it as a formula
+  return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+function toCSV(rows) {
+  if (!rows.length) return '';
+  const cols = Object.keys(rows[0]);
+  return [cols.join(','), ...rows.map((r) => cols.map((c) => csvCell(r[c])).join(','))].join('\n');
+}
+function downloadCSV(name, rows) {
+  if (!rows.length) { toast('Nothing to download yet.'); return; }
+  const blob = new Blob(['﻿' + toCSV(rows)], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+function fileStamp() { return new Date().toLocaleString('sv-SE').slice(0, 16).replace(/[ :]/g, '-'); }
+
+let lastTick = performance.now(), lastPresence = 0;
+setInterval(() => {
+  const now = performance.now(); const dt = (now - lastTick) * SPEED; lastTick = now;
+  updateDebounce(now);
+  const s = S.session;
+  if (s && s.phase === 'focusing' && document.visibilityState === 'visible') {
+    s.remainingMs -= dt; s.focusedMs += dt;
+    if (s.remainingMs <= 0) { s.focusedMs += s.remainingMs; s.remainingMs = 0; completeSession(false); }
+    else if (S.screen === 'session') { renderTimer(); if (S.mode === 'group' && now - lastRowRender > 1000) { lastRowRender = now; memberList('#sessMembers', { stats: true }); } }
+  }
+  if (S.mode === 'group' && S.net && now - lastPresence > 5000) publishPresence();
+  if (S.screen === 'lobby' || S.screen === 'session' || S.screen === 'summary') {
+    if (now - lastStaleRender > 5000) { lastStaleRender = now; if (S.screen !== 'session') render(); else if (S.mode === 'group') memberList('#sessMembers', { stats: true }); }
+  }
+  if (now - lastRateAt >= 1000) { S.sensor.rate = Math.round((S.sensor.count - lastCount) * 1000 / (now - lastRateAt)); lastCount = S.sensor.count; lastRateAt = now; }
+  if (S.screen === 'test') renderTest();
+}, 200);
+let lastStaleRender = 0, lastRowRender = 0, lastRateAt = performance.now(), lastCount = 0;
+
+document.addEventListener('visibilitychange', () => {
+  const s = S.session;
+  if (document.visibilityState === 'hidden') {
+    // Leaving the app while the phone is up counts as a pick-up. A screen that locks while face-down does not.
+    if (s && s.phase === 'focusing' && !S.sensor.raw && !DEMO && !S.sensor.unavailable) registerPickup('left_app');
+    else if (s && s.phase === 'focusing') logEvent('screen_off_while_down');
+    publishPresence();
+  } else {
+    if (s && s.phase !== 'done' && s.phase !== 'setup') logEvent('back_in_app');
+    lastTick = performance.now();
+    if (s && s.phase !== 'done' && s.phase !== 'setup') keepAwake();
+    publishPresence(); render();
+  }
+});
+
+/* ---------- group sync ---------- */
+function publishPresence() {
+  if (S.mode !== 'group' || !S.net) return;
+  lastPresence = performance.now();
+  const s = S.session;
+  const me = {
+    id: S.me.id, name: S.me.name, status: myStatus(),
+    focusedSec: s ? Math.round(s.focusedMs / 1000) : 0,
+    remainingSec: s ? Math.round(s.remainingMs / 1000) : 0,
+    pickups: s ? s.pickups : 0,
+  };
+  S.net.pub('members/' + S.me.id, me, true);
+}
+function publishConfig() {
+  if (!S.net || !S.isHost) return;
+  const r = S.room;
+  S.net.pub('config', { durationMin: r.durationMin, penalty: r.penalty, host: r.host, state: r.state, startedAt: r.startedAt || null }, true);
+}
+function onNetMessage(sub, data) {
+  if (sub === 'config') {
+    if (!data || typeof data !== 'object') return;
+    const state = ['lobby', 'running', 'ended'].includes(data.state) ? data.state : 'lobby';
+    S.room = Object.assign({}, S.room, {
+      durationMin: clamp(data.durationMin, 1, 240), penalty: str(data.penalty, 60) || 'No penalty',
+      host: str(data.host, 20), state, startedAt: Number(data.startedAt) || null,
+    });
+    if (state === 'running' && !S.session) startGroupSession();
+    else if (state === 'ended' && S.session && S.session.phase !== 'done') completeSession(true);
+    render();
+  } else if (sub.startsWith('members/')) {
+    const id = str(sub.slice(8), 20);
+    if (!data || typeof data !== 'object') { S.members.delete(id); render(); return; }
+    S.members.set(id, {
+      id, name: str(data.name, 24) || 'Someone', status: STATUS[data.status] ? data.status : 'lobby',
+      focusedSec: clamp(data.focusedSec, 0, 86400), remainingSec: clamp(data.remainingSec, 0, 86400),
+      pickups: clamp(data.pickups, 0, 999), receivedAt: Date.now(),
+    });
+    if (S.screen === 'session') memberList('#sessMembers', { stats: true }); else render();
+  } else if (sub === 'events') {
+    if (!data || data.type !== 'pickup' || data.id === S.me.id) return;
+    const name = str(data.name, 24) || 'Someone';
+    const pen = S.room && S.room.penalty && S.room.penalty !== 'No penalty' ? ' Penalty: ' + S.room.penalty + '.' : '';
+    toast(name + ' picked up their phone!' + pen);
+    buzz(120);
+  }
+}
+function setNetStatus(t) { S.netStatus = t; if (S.screen === 'lobby' || S.screen === 'session') render(); }
+
+function loadMqtt() {
+  if (window.mqtt) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const sc = document.createElement('script'); sc.src = MQTT_LIB; sc.async = true;
+    const t = setTimeout(() => resolve(false), 10000);
+    sc.onload = () => { clearTimeout(t); resolve(!!window.mqtt); };
+    sc.onerror = () => { clearTimeout(t); resolve(false); };
+    document.head.appendChild(sc);
+  });
+}
+
+async function connectNet(code) {
+  const base = 'stpd/v1/' + code;
+  if (TRANSPORT === 'local') return localNet(base, false);
+  setNetStatus('Connecting…');
+  const ok = await loadMqtt();
+  if (!ok) { toast('Could not reach the sync server. Group mode only works between tabs on this device.'); return localNet(base, true); }
+  return mqttNet(base);
+}
+
+function mqttNet(base) {
+  let i = 0, client = null;
+  const api = {
+    connected: false,
+    pub(sub, data, retain) {
+      if (!client) return;
+      try { client.publish(base + '/' + sub, data == null ? '' : JSON.stringify(data), { qos: 0, retain: !!retain }); } catch (e) {}
+    },
+    close() { try { client && client.end(false); } catch (e) {} client = null; api.connected = false; },
+  };
+  function attempt() {
+    const url = BROKERS[i % BROKERS.length];
+    const c = mqtt.connect(url, {
+      clientId: 'stpd_' + S.me.id + '_' + rid(4), clean: true, keepalive: 30, reconnectPeriod: 3000, connectTimeout: 8000,
+      will: { topic: base + '/members/' + S.me.id, payload: '', qos: 0, retain: true },
+    });
+    client = c;
+    let first = false;
+    const fail = setTimeout(() => {
+      if (first || client !== c) return;
+      try { c.end(true); } catch (e) {}
+      i += 1;
+      if (i < BROKERS.length * 2) attempt(); else setNetStatus('Could not connect');
+    }, 9000);
+    c.on('connect', () => {
+      first = true; clearTimeout(fail); api.connected = true;
+      c.subscribe(base + '/#', { qos: 0 });
+      setNetStatus('Live'); onNetConnect();
+    });
+    c.on('reconnect', () => setNetStatus('Reconnecting…'));
+    c.on('offline', () => { api.connected = false; setNetStatus('Offline'); });
+    c.on('close', () => { api.connected = false; });
+    c.on('message', (topic, payload) => {
+      if (!topic.startsWith(base + '/')) return;
+      const txt = payload.toString(); let data = null;
+      if (txt) { try { data = JSON.parse(txt); } catch (e) { return; } }
+      onNetMessage(topic.slice(base.length + 1), data);
+    });
+  }
+  attempt();
+  return api;
+}
+
+function localNet(base, degraded) {
+  const bc = 'BroadcastChannel' in window ? new BroadcastChannel('stpd-local') : null;
+  const retained = new Map();
+  const deliver = (m) => { if (typeof m.topic === 'string' && m.topic.startsWith(base + '/')) onNetMessage(m.topic.slice(base.length + 1), m.data); };
+  const api = {
+    connected: true,
+    pub(sub, data, retain) {
+      const m = { topic: base + '/' + sub, data: data == null ? null : data, retain: !!retain };
+      if (m.retain) { if (m.data == null) retained.delete(m.topic); else retained.set(m.topic, m.data); }
+      if (bc) bc.postMessage(m);
+      deliver(m);
+    },
+    close() { if (bc) bc.close(); api.connected = false; },
+  };
+  if (bc) bc.onmessage = (ev) => {
+    const m = ev.data; if (!m || typeof m !== 'object') return;
+    if (m.type === 'sync') { if (m.base === base) for (const [t, d] of retained) bc.postMessage({ topic: t, data: d, retain: true }); return; }
+    if (m.retain) { if (m.data == null) retained.delete(m.topic); else retained.set(m.topic, m.data); }
+    deliver(m);
+  };
+  setTimeout(() => {
+    setNetStatus(degraded ? 'Offline: this device only' : 'Local test mode');
+    if (bc) bc.postMessage({ type: 'sync', base });
+    onNetConnect();
+  }, 50);
+  return api;
+}
+
+function onNetConnect() { if (S.isHost) publishConfig(); publishPresence(); render(); }
+
+async function joinRoom(code, asHost) {
+  S.mode = 'group'; S.isHost = asHost; S.members.clear(); S.session = null;
+  if (!asHost) S.room = { code, state: 'lobby' };
+  show('lobby');
+  S.net = await connectNet(code);
+  render();
+}
+function startGroupSession() {
+  S.session = newSession(S.room.durationMin);
+  show('session'); publishPresence();
+}
+function leaveRoom() {
+  if (S.net) {
+    const net = S.net;
+    net.pub('members/' + S.me.id, null, true);
+    setTimeout(() => net.close(), 400);
+  }
+  S.net = null; S.session = null; S.room = null; S.members.clear(); S.isHost = false; S.mode = 'solo';
+  releaseWake(); $('#overlay').hidden = true; show('home');
+}
+
+/* ---------- UI wiring ---------- */
+function requireName() {
+  const n = $('#name').value.trim().slice(0, 24);
+  if (!n) { $('#homeError').textContent = 'Please enter your first name.'; $('#name').focus(); return false; }
+  $('#homeError').textContent = ''; S.me.name = n; store.set('stpd_name', n); return true;
+}
+$('#name').value = S.me.name;
+if (params.get('join')) $('#joinCode').value = str(params.get('join'), 8).toUpperCase();
+
+$('#btnSolo').addEventListener('click', () => { if (!requireName()) return; S.mode = 'solo'; S.isHost = false; show('setup'); });
+$('#btnCreate').addEventListener('click', () => { if (!requireName()) return; S.mode = 'group'; S.isHost = true; show('setup'); });
+$('#btnJoin').addEventListener('click', () => {
+  if (!requireName()) return;
+  const code = $('#joinCode').value.trim().toUpperCase();
+  if (!/^[A-Z0-9]{4,8}$/.test(code)) { $('#homeError').textContent = 'Room codes are 5 letters or digits.'; return; }
+  unlockAudio(); joinRoom(code, false);
+});
+$('#durationChips').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  S.setup.durationMin = Number(c.dataset.min); $('#customMin').value = ''; renderSetup();
+});
+$('#customMin').addEventListener('input', (e) => { const v = Number(e.target.value); if (v >= 1 && v <= 240) { S.setup.durationMin = Math.round(v); renderSetup(); } });
+$('#penaltyChips').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  S.setup.penalty = c.dataset.penalty; $('#customPenalty').value = ''; renderSetup();
+});
+$('#customPenalty').addEventListener('input', (e) => { const v = e.target.value.trim(); if (v) { S.setup.penalty = v.slice(0, 60); renderSetup(); } });
+$('#btnSetupBack').addEventListener('click', () => { S.isHost = false; show('home'); });
+$('#btnSetupGo').addEventListener('click', () => {
+  unlockAudio();
+  if (S.mode === 'solo') { S.session = newSession(S.setup.durationMin); show('session'); return; }
+  S.room = { code: roomCode(), durationMin: S.setup.durationMin, penalty: S.setup.penalty, host: S.me.id, state: 'lobby', startedAt: null };
+  joinRoom(S.room.code, true);
+});
+$('#btnCopy').addEventListener('click', async () => {
+  const link = location.origin + location.pathname + '?join=' + encodeURIComponent(S.room.code);
+  try { await navigator.clipboard.writeText(link); toast('Invite link copied: send it to your friends.'); }
+  catch (e) { toast('Share this link: ' + link); }
+});
+$('#btnStartAll').addEventListener('click', () => {
+  S.room.state = 'running'; S.room.startedAt = Date.now();
+  publishConfig(); if (!S.session) startGroupSession();
+});
+$('#btnLeaveLobby').addEventListener('click', leaveRoom);
+$('#btnEnable').addEventListener('click', async () => {
+  await enableSensors(); keepAwake();
+  if (S.session && S.session.phase === 'setup') { S.session.phase = 'armed'; logEvent('ready'); }
+  publishPresence(); render();
+});
+$('#btnSimDown').addEventListener('click', () => setRaw(true));
+$('#btnSimUp').addEventListener('click', () => setRaw(false));
+$('#btnOverlaySim').addEventListener('click', () => setRaw(true));
+$('#btnOverlayClose').addEventListener('click', () => { $('#overlay').hidden = true; });
+$('#btnEnd').addEventListener('click', () => {
+  if (S.mode === 'group' && S.isHost) { S.room.state = 'ended'; publishConfig(); }
+  completeSession(true);   // members leave from the summary screen, so their session is saved first
+});
+$('#btnHome').addEventListener('click', () => { if (S.mode === 'group') leaveRoom(); else { S.session = null; show('home'); } });
+window.addEventListener('pagehide', () => { if (S.net) S.net.pub('members/' + S.me.id, null, true); });
+
+/* ---------- summary: rating and export ---------- */
+$('#ratingChips').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c || !S.session) return;
+  S.session.rating = Number(c.dataset.r);
+  saveSession(S.session); renderRating(); toast('Rating saved.');
+});
+function renderRating() {
+  const r = S.session ? S.session.rating : null;
+  document.querySelectorAll('#ratingChips .chip').forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.r) === r)));
+}
+$('#btnCsvThis').addEventListener('click', () => {
+  if (!S.session) return;
+  downloadCSV('focus-session-' + fileStamp() + '.csv', [sessionRecord(S.session)]);
+});
+
+/* ---------- sensor test ---------- */
+function onTestFlip(down) {
+  if (S.screen !== 'test' || !S.test.running) return;
+  if (down) { S.test.flips += 1; say(SAY_FACE_DOWN, () => beep(1046, 1)); buzz(80); }
+  else { S.test.ups += 1; say(SAY_FACE_UP, () => beep(392, 1)); buzz([40, 60, 40]); }
+}
+function renderTest() {
+  const sn = S.sensor, t = S.test;
+  const badge = $('#testBadge');
+  if (!t.running) { badge.className = 'badge'; badge.textContent = 'Not started'; }
+  else if (!sn.ok) { badge.className = 'badge'; badge.textContent = sn.unavailable ? 'No sensor data' : 'Waiting for sensor…'; }
+  else if (sn.faceDown) { badge.className = 'badge down'; badge.textContent = 'FACE DOWN'; }
+  else { badge.className = 'badge up'; badge.textContent = 'FACE UP / IN HAND'; }
+  const fmtNum = (v) => (v == null ? '–' : (Math.round(v * 10) / 10).toFixed(1));
+  $('#tSecure').textContent = window.isSecureContext ? 'yes' : 'NO: open the https:// address';
+  $('#tPerm').textContent = sn.perm;
+  $('#tMode').textContent = sn.mode === 'orientation' ? 'orientation (gyro + accelerometer)' : sn.mode === 'motion' ? 'accelerometer only' : '–';
+  $('#tRate').textContent = t.running ? String(sn.rate) : '–';
+  $('#tBeta').textContent = fmtNum(sn.beta) + '°';
+  $('#tGamma').textContent = fmtNum(sn.gamma) + '°';
+  $('#tZ').textContent = fmtNum(sn.z);
+  $('#tFlips').textContent = t.flips + ' down / ' + t.ups + ' up';
+  $('#tWake').textContent = t.wake || '–';
+  $('#tVib').textContent = 'vibrate' in navigator ? 'supported' : 'not supported (normal on iPhone)';
+  $('#tVoice').textContent = voiceStatus();
+}
+$('#btnTest').addEventListener('click', () => show('test'));
+$('#btnTestBack').addEventListener('click', () => { releaseWake(); show('home'); });
+$('#btnTestStart').addEventListener('click', async () => {
+  await enableSensors();
+  S.test.running = true; S.test.flips = 0; S.test.ups = 0;
+  if (!('wakeLock' in navigator)) S.test.wake = 'not supported: turn off auto-lock';
+  else { await keepAwake(); S.test.wake = wakeLock && !wakeLock.released ? 'yes' : 'failed: turn off auto-lock'; }
+  $('#btnTestStart').textContent = 'Restart sensor test';
+  renderTest();
+});
+$('#btnTestCopy').addEventListener('click', async () => {
+  const sn = S.sensor;
+  const report = {
+    app_version: VERSION, date: localTs(Date.now()), device: navigator.userAgent,
+    https: window.isSecureContext, permission: sn.perm, sensor: sn.mode, readings_per_second: sn.rate,
+    face_down_detections: S.test.flips, pick_up_detections: S.test.ups,
+    last_face_down_values: sn.downSample, last_face_up_values: sn.upSample,
+    screen_kept_awake: S.test.wake, vibration: 'vibrate' in navigator,
+    voice: voiceStatus(), voice_name: speechVoice ? speechVoice.name + ' (' + speechVoice.lang + ')' : null,
+  };
+  const text = JSON.stringify(report, null, 2);
+  try { await navigator.clipboard.writeText(text); toast('Results copied. Paste them into the team chat.'); }
+  catch (e) { toast('Could not copy automatically. Take a screenshot of this screen instead.'); }
+});
+
+/* ---------- history ---------- */
+function renderHistory() {
+  const list = loadList('stpd_sessions').slice().reverse();
+  $('#histSummary').textContent = list.length ? list.length + (list.length === 1 ? ' session' : ' sessions') + ' saved on this phone.' : 'No sessions yet. Finish a session and it is saved here.';
+  const ul = $('#histList'); ul.textContent = '';
+  list.slice(0, 50).forEach((r) => {
+    const li = el('li', 'member');
+    li.appendChild(el('span', 'dot ' + (Number(r.pickups) === 0 ? 'focusing' : 'up')));
+    const who = el('div', 'who');
+    who.appendChild(el('div', 'name', r.start_time + (r.mode === 'group' ? ' · group ' + r.room : ' · solo')));
+    who.appendChild(el('div', 'st', r.focused_min + ' min focused · ' + r.pickups + (Number(r.pickups) === 1 ? ' pick-up' : ' pick-ups') + ' · longest stretch ' + r.longest_uninterrupted_min + ' min' + (r.self_rating !== '' ? ' · rating ' + r.self_rating : '')));
+    li.appendChild(who); ul.appendChild(li);
+  });
+  const clr = $('#btnClearHist'); clr.textContent = clearArmed ? 'Tap again to delete everything' : 'Delete all saved sessions';
+}
+let clearArmed = false;
+$('#btnHistory').addEventListener('click', () => { clearArmed = false; show('history'); });
+$('#btnHistBack').addEventListener('click', () => { clearArmed = false; show('home'); });
+$('#btnCsvSessions').addEventListener('click', () => downloadCSV('focus-sessions-' + fileStamp() + '.csv', loadList('stpd_sessions')));
+$('#btnCsvEvents').addEventListener('click', () => downloadCSV('focus-events-' + fileStamp() + '.csv', loadList('stpd_events')));
+$('#btnCopyCsv').addEventListener('click', async () => {
+  const text = toCSV(loadList('stpd_sessions'));
+  if (!text) { toast('Nothing to copy yet.'); return; }
+  try { await navigator.clipboard.writeText(text); toast('Copied. Paste it into a spreadsheet or the team chat.'); }
+  catch (e) { toast('Could not copy. Use the download button instead.'); }
+});
+$('#btnClearHist').addEventListener('click', () => {
+  if (!clearArmed) { clearArmed = true; renderHistory(); return; }
+  saveList('stpd_sessions', []); saveList('stpd_events', []); clearArmed = false; renderHistory(); toast('All saved sessions deleted.');
+});
+
+$('#ver').textContent = VERSION;
+render();
+</script>
+</body>
+</html>
