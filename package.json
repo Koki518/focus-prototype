@@ -1,0 +1,10 @@
+{
+  "name": "study-together-phones-down",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Face-down focus timer prototype with usage tracking in MongoDB",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "mongodb": "^6.10.0"
+  }
+}
